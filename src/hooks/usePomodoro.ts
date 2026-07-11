@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 
-export type Mode = "work" | "break" | "long-break";
+export type Mode = "work" | "short-break" | "long-break";
 
-const WORK_TIME = 25 * 60;
-const BREAK_TIME = 5 * 60;
+const WORK_TIME = 2;
+const SHORT_BREAK_TIME = 3;
+const LONG_BREAK_TIME = 5;
 
 export const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -15,6 +16,31 @@ export function usePomodoro() {
     const [currentMode, setCurrentMode] = useState<Mode>("work");
     const [remainingTime, setRemainingTime] = useState(WORK_TIME);
     const [isTimeRunning, setIsTimeRunning] = useState(false);
+    const [completedWorkSessions, setCompletedWorkSessions] = useState(0);
+
+    const getModeTime = (mode: Mode) => {
+        if (mode === "work") {
+            return WORK_TIME;
+        } else if (mode === "short-break") {
+            return SHORT_BREAK_TIME;
+        } else {
+            return LONG_BREAK_TIME;
+        }
+    };
+
+    const getNextMode = (mode: Mode) => {
+        if (mode === "work") {
+            const nextCount = completedWorkSessions + 1;
+            if (nextCount === 4) {
+                setCompletedWorkSessions(0);
+                return "long-break";
+            }
+            setCompletedWorkSessions(nextCount);
+            return "short-break";
+        } else {
+            return "work";
+        }
+    };
 
     useEffect(() => {
         let intervalId: number | undefined;
@@ -24,10 +50,9 @@ export function usePomodoro() {
                 setRemainingTime((prevTime) => {
                     if (prevTime <= 1) {
                         setIsTimeRunning(false);
-                        const nextMode =
-                            currentMode === "work" ? "break" : "work";
+                        const nextMode = getNextMode(currentMode);
                         setCurrentMode(nextMode);
-                        return nextMode === "work" ? WORK_TIME : BREAK_TIME;
+                        return getModeTime(nextMode);
                     }
                     return prevTime - 1;
                 });
@@ -44,13 +69,13 @@ export function usePomodoro() {
 
     const resetTimer = () => {
         setIsTimeRunning(false);
-        setRemainingTime(currentMode === "work" ? WORK_TIME : BREAK_TIME);
+        setRemainingTime(getModeTime(currentMode));
     };
 
     const changeMode = (mode: Mode) => {
         setIsTimeRunning(false);
         setCurrentMode(mode);
-        setRemainingTime(mode === "work" ? WORK_TIME : BREAK_TIME);
+        setRemainingTime(getModeTime(mode));
     };
 
     return {
@@ -60,5 +85,6 @@ export function usePomodoro() {
         toggleTimer,
         resetTimer,
         changeMode,
+        completedWorkSessions,
     };
 }

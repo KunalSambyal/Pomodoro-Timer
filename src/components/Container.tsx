@@ -9,11 +9,12 @@ const Container = () => {
         formatTime,
         resetTimer,
         changeMode,
+        completedWorkSessions,
     } = usePomodoro();
 
     const modes: { id: Mode; label: string }[] = [
         { id: "work", label: "Work" },
-        { id: "break", label: "Break" },
+        { id: "short-break", label: "Break" },
         { id: "long-break", label: "Long Break" },
     ];
 
@@ -46,6 +47,13 @@ const Container = () => {
             {/* Time */}
             <div className="py-4 text-5xl font-bold text-center text-shadow-md">
                 {formatTime}
+            </div>
+
+            {/* Work Sessions */}
+            <div className="text-slate-300 text-center text-sm py-2">
+                {currentMode === "long-break"
+                    ? `Time for long break!`
+                    : `Completed Work Session: ${completedWorkSessions}`}
             </div>
 
             {/* Action Buttons */}
