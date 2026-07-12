@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 
 export type Mode = "work" | "short-break" | "long-break";
 
-const WORK_TIME = 2;
-const SHORT_BREAK_TIME = 3;
-const LONG_BREAK_TIME = 5;
+const WORK_TIME = 25 * 60;
+const SHORT_BREAK_TIME = 5 * 60;
+const LONG_BREAK_TIME = 15 * 60;
 
 export const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
