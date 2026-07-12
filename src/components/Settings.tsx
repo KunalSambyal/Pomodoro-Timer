@@ -70,7 +70,7 @@ const TimeInput = ({ id, label, value, onChange, min = 1, max = 180 }: TimeInput
         <div className="flex flex-col">
             <label
                 htmlFor={id}
-                className="text-sm font-bold text-neutral-400 mb-1.5"
+                className="text-xs font-bold text-neutral-400 mb-1.5 whitespace-nowrap"
             >
                 {label}
             </label>
