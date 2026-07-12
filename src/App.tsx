@@ -16,12 +16,17 @@ function App() {
             />
             <Container />
             {isSettingsOpen && (
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50">
-                    <Settings
-                        onClose={() => {
-                            setIsSettingsOpen(false);
-                        }}
-                    />
+                <div
+                    className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 cursor-pointer"
+                    onClick={() => setIsSettingsOpen(false)}
+                >
+                    <div onClick={(e) => e.stopPropagation()} className="cursor-default">
+                        <Settings
+                            onClose={() => {
+                                setIsSettingsOpen(false);
+                            }}
+                        />
+                    </div>
                 </div>
             )}
         </div>

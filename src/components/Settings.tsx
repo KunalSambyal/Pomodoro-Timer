@@ -1,19 +1,24 @@
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon, faClock, faXmark } from "../assets/icons";
 import { useSettings } from "../context/SettingsContext";
 
 interface ToggleSwitchProps {
     id: string;
+    label: string;
     checked: boolean;
     onChange: (checked: boolean) => void;
 }
 
-const ToggleSwitch = ({ id, checked, onChange }: ToggleSwitchProps) => {
+const ToggleSwitch = ({ id, label, checked, onChange }: ToggleSwitchProps) => {
     return (
         <button
             type="button"
             id={id}
+            role="switch"
+            aria-checked={checked}
+            aria-label={label}
             onClick={() => onChange(!checked)}
-            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full items-center px-0.5 transition-colors duration-200 ease-in-out focus:outline-none ${
+            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full items-center px-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 ${
                 checked ? "bg-neutral-400" : "bg-neutral-300"
             }`}
         >
@@ -31,25 +36,107 @@ interface TimeInputProps {
     label: string;
     value: number;
     onChange: (value: number) => void;
+    min?: number;
+    max?: number;
 }
 
-const TimeInput = ({ id, label, value, onChange }: TimeInputProps) => (
-    <div className="flex flex-col">
-        <label
-            htmlFor={id}
-            className="text-sm font-bold text-neutral-400 mb-1.5"
-        >
-            {label}
-        </label>
+const TimeInput = ({ id, label, value, onChange, min = 1, max = 180 }: TimeInputProps) => {
+    const [inputValue, setInputValue] = useState(value.toString());
+
+    useEffect(() => {
+        setInputValue(value.toString());
+    }, [value]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value;
+        setInputValue(rawValue);
+
+        if (rawValue !== "") {
+            const numVal = Number(rawValue);
+            if (!isNaN(numVal)) {
+                const clamped = Math.max(min, Math.min(max, numVal));
+                onChange(clamped);
+            }
+        }
+    };
+
+    const handleBlur = () => {
+        if (inputValue === "" || isNaN(Number(inputValue))) {
+            setInputValue(value.toString());
+        }
+    };
+
+    return (
+        <div className="flex flex-col">
+            <label
+                htmlFor={id}
+                className="text-sm font-bold text-neutral-400 mb-1.5"
+            >
+                {label}
+            </label>
+            <input
+                type="number"
+                id={id}
+                value={inputValue}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                min={min}
+                max={max}
+                className="w-full bg-[#efefef] text-neutral-600 font-semibold py-2.5 px-3 rounded-lg focus:outline-none focus:bg-neutral-200/60 transition-colors text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+        </div>
+    );
+};
+
+const IntervalInput = ({
+    value,
+    onChange,
+    min = 1,
+    max = 12,
+}: {
+    value: number;
+    onChange: (value: number) => void;
+    min?: number;
+    max?: number;
+}) => {
+    const [inputValue, setInputValue] = useState(value.toString());
+
+    useEffect(() => {
+        setInputValue(value.toString());
+    }, [value]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value;
+        setInputValue(rawValue);
+
+        if (rawValue !== "") {
+            const numVal = Number(rawValue);
+            if (!isNaN(numVal)) {
+                const clamped = Math.max(min, Math.min(max, numVal));
+                onChange(clamped);
+            }
+        }
+    };
+
+    const handleBlur = () => {
+        if (inputValue === "" || isNaN(Number(inputValue))) {
+            setInputValue(value.toString());
+        }
+    };
+
+    return (
         <input
             type="number"
-            id={id}
-            value={value}
-            onChange={(e) => onChange(Number(e.target.value))}
-            className="w-full bg-[#efefef] text-neutral-600 font-semibold py-2.5 px-3 rounded-lg focus:outline-none focus:bg-neutral-200/60 transition-colors text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            id="long-break-interval"
+            value={inputValue}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            min={min}
+            max={max}
+            className="w-16 bg-[#efefef] text-neutral-600 font-semibold py-2 px-3 rounded-lg focus:outline-none focus:bg-neutral-200/60 transition-colors text-sm text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
-    </div>
-);
+    );
+};
 
 interface SettingsProps {
     onClose?: () => void;
@@ -58,12 +145,34 @@ interface SettingsProps {
 const Settings = ({ onClose }: SettingsProps) => {
     const { settings, updateSettings } = useSettings();
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                onClose?.();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
+    useEffect(() => {
+        const previouslyFocusedElement = document.activeElement as HTMLElement | null;
+        const firstInput = document.getElementById("pomodoro-time");
+        if (firstInput) {
+            firstInput.focus();
+        }
+        return () => {
+            if (previouslyFocusedElement) {
+                previouslyFocusedElement.focus();
+            }
+        };
+    }, []);
+
     return (
         <form
             onSubmit={(e) => e.preventDefault()}
             className="bg-white text-neutral-800 rounded-2xl w-full max-w-90 shadow-lg border border-neutral-100 flex flex-col font-sans overflow-hidden"
         >
-            {/* Modal Header */}
             <div className="relative flex justify-center items-center py-4 border-b border-neutral-100">
                 <h2 className="text-sm font-bold tracking-widest text-neutral-400">
                     SETTING
@@ -78,9 +187,7 @@ const Settings = ({ onClose }: SettingsProps) => {
                 </button>
             </div>
 
-            {/* Modal Body */}
             <div className="px-6 py-5 flex flex-col gap-6">
-                {/* Timer Section Header */}
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2 text-neutral-400 text-[11px] font-bold tracking-wider">
                         <FontAwesomeIcon icon={faClock} className="text-sm" />
@@ -91,36 +198,34 @@ const Settings = ({ onClose }: SettingsProps) => {
                         Time (minutes)
                     </h3>
 
-                    {/* Time Inputs */}
                     <div className="grid grid-cols-3 gap-3.5">
                         <TimeInput
                             id="pomodoro-time"
                             label="Pomodoro"
                             value={settings.workTime}
-                            onChange={(val) =>
-                                updateSettings({ workTime: val })
-                            }
+                            onChange={(val) => updateSettings({ workTime: val })}
+                            min={1}
+                            max={180}
                         />
                         <TimeInput
                             id="short-break-time"
                             label="Short Break"
                             value={settings.shortBreak}
-                            onChange={(val) =>
-                                updateSettings({ shortBreak: val })
-                            }
+                            onChange={(val) => updateSettings({ shortBreak: val })}
+                            min={1}
+                            max={60}
                         />
                         <TimeInput
                             id="long-break-time"
                             label="Long Break"
                             value={settings.longBreak}
-                            onChange={(val) =>
-                                updateSettings({ longBreak: val })
-                            }
+                            onChange={(val) => updateSettings({ longBreak: val })}
+                            min={1}
+                            max={120}
                         />
                     </div>
                 </div>
 
-                {/* Additional Settings */}
                 <div className="flex flex-col gap-4 mt-2">
                     <div className="flex justify-between items-center">
                         <span className="text-sm font-bold text-neutral-600">
@@ -128,6 +233,7 @@ const Settings = ({ onClose }: SettingsProps) => {
                         </span>
                         <ToggleSwitch
                             id="auto-start-breaks"
+                            label="Auto Start Breaks"
                             checked={settings.autoStartBreaks}
                             onChange={(checked) =>
                                 updateSettings({ autoStartBreaks: checked })
@@ -141,6 +247,7 @@ const Settings = ({ onClose }: SettingsProps) => {
                         </span>
                         <ToggleSwitch
                             id="auto-start-pomodoros"
+                            label="Auto Start Pomodoros"
                             checked={settings.autoStartPomodoros}
                             onChange={(checked) => {
                                 updateSettings({ autoStartPomodoros: checked });
@@ -152,21 +259,19 @@ const Settings = ({ onClose }: SettingsProps) => {
                         <span className="text-sm font-bold text-neutral-600">
                             Long Break interval
                         </span>
-                        <input
-                            type="number"
-                            id="long-break-interval"
+                        <IntervalInput
                             value={settings.longBreakInterval}
-                            onChange={(e) =>
+                            onChange={(val) =>
                                 updateSettings({
-                                    longBreakInterval: Number(e.target.value),
+                                    longBreakInterval: val,
                                 })
                             }
-                            className="w-16 bg-[#efefef] text-neutral-600 font-semibold py-2 px-3 rounded-lg focus:outline-none focus:bg-neutral-200/60 transition-colors text-sm text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            min={1}
+                            max={12}
                         />
                     </div>
                 </div>
 
-                {/* Separator line at the bottom */}
                 <div className="border-t border-neutral-100/70 pt-2" />
             </div>
         </form>
