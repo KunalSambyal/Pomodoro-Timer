@@ -6,7 +6,7 @@ interface NavbarProps {
 
 const Navbar = ({ onOpenSettings }: NavbarProps) => {
     return (
-        <nav className="bg-slate-500 flex items-center justify-between gap-8 px-2 h-12 rounded-sm shadow-md">
+        <nav className="w-full max-w-md bg-slate-500 flex items-center justify-between gap-8 px-4 h-12 rounded-lg shadow-md">
             {/* Logo */}
             <div className="text-xl font-semibold cursor-pointer flex items-center justify-center">
                 <FontAwesomeIcon icon={faClock} />

@@ -31,7 +31,7 @@ const Container = () => {
     ];
 
     return (
-        <div className="w-100 bg-[#ffffff1d] h-fit px-6 py-4 rounded-md shadow-xl flex flex-col gap-y-4">
+        <div className="w-full max-w-md bg-[#ffffff1d] h-fit px-6 py-4 rounded-xl shadow-xl flex flex-col gap-y-4">
             {/* Modes */}
             <div className="flex justify-between px-4">
                 {modes.map((mode) => (

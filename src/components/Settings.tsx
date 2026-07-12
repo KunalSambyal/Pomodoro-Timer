@@ -171,7 +171,7 @@ const Settings = ({ onClose }: SettingsProps) => {
     return (
         <form
             onSubmit={(e) => e.preventDefault()}
-            className="bg-white text-neutral-800 rounded-2xl w-full max-w-90 shadow-lg border border-neutral-100 flex flex-col font-sans overflow-hidden"
+            className="bg-white text-neutral-800 rounded-2xl w-full max-w-md shadow-lg border border-neutral-100 flex flex-col font-sans overflow-hidden"
         >
             <div className="relative flex justify-center items-center py-4 border-b border-neutral-100">
                 <h2 className="text-sm font-bold tracking-widest text-neutral-400">
