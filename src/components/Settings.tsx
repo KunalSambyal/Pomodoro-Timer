@@ -1,0 +1,176 @@
+import { FontAwesomeIcon, faClock, faXmark } from "../assets/icons";
+import { useSettings } from "../context/SettingsContext";
+
+interface ToggleSwitchProps {
+    id: string;
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+}
+
+const ToggleSwitch = ({ id, checked, onChange }: ToggleSwitchProps) => {
+    return (
+        <button
+            type="button"
+            id={id}
+            onClick={() => onChange(!checked)}
+            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full items-center px-0.5 transition-colors duration-200 ease-in-out focus:outline-none ${
+                checked ? "bg-neutral-400" : "bg-neutral-300"
+            }`}
+        >
+            <span
+                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out ${
+                    checked ? "translate-x-5" : "translate-x-0"
+                }`}
+            />
+        </button>
+    );
+};
+
+interface TimeInputProps {
+    id: string;
+    label: string;
+    value: number;
+    onChange: (value: number) => void;
+}
+
+const TimeInput = ({ id, label, value, onChange }: TimeInputProps) => (
+    <div className="flex flex-col">
+        <label
+            htmlFor={id}
+            className="text-sm font-bold text-neutral-400 mb-1.5"
+        >
+            {label}
+        </label>
+        <input
+            type="number"
+            id={id}
+            value={value}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className="w-full bg-[#efefef] text-neutral-600 font-semibold py-2.5 px-3 rounded-lg focus:outline-none focus:bg-neutral-200/60 transition-colors text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+    </div>
+);
+
+interface SettingsProps {
+    onClose?: () => void;
+}
+
+const Settings = ({ onClose }: SettingsProps) => {
+    const { settings, updateSettings } = useSettings();
+
+    return (
+        <form
+            onSubmit={(e) => e.preventDefault()}
+            className="bg-white text-neutral-800 rounded-2xl w-full max-w-90 shadow-lg border border-neutral-100 flex flex-col font-sans overflow-hidden"
+        >
+            {/* Modal Header */}
+            <div className="relative flex justify-center items-center py-4 border-b border-neutral-100">
+                <h2 className="text-sm font-bold tracking-widest text-neutral-400">
+                    SETTING
+                </h2>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="absolute right-6 text-neutral-400 hover:text-neutral-600 transition-colors focus:outline-none cursor-pointer"
+                    aria-label="Close settings"
+                >
+                    <FontAwesomeIcon icon={faXmark} />
+                </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-6 py-5 flex flex-col gap-6">
+                {/* Timer Section Header */}
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-2 text-neutral-400 text-[11px] font-bold tracking-wider">
+                        <FontAwesomeIcon icon={faClock} className="text-sm" />
+                        <span>TIMER</span>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-neutral-700 mt-3 mb-2">
+                        Time (minutes)
+                    </h3>
+
+                    {/* Time Inputs */}
+                    <div className="grid grid-cols-3 gap-3.5">
+                        <TimeInput
+                            id="pomodoro-time"
+                            label="Pomodoro"
+                            value={settings.workTime}
+                            onChange={(val) =>
+                                updateSettings({ workTime: val })
+                            }
+                        />
+                        <TimeInput
+                            id="short-break-time"
+                            label="Short Break"
+                            value={settings.shortBreak}
+                            onChange={(val) =>
+                                updateSettings({ shortBreak: val })
+                            }
+                        />
+                        <TimeInput
+                            id="long-break-time"
+                            label="Long Break"
+                            value={settings.longBreak}
+                            onChange={(val) =>
+                                updateSettings({ longBreak: val })
+                            }
+                        />
+                    </div>
+                </div>
+
+                {/* Additional Settings */}
+                <div className="flex flex-col gap-4 mt-2">
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm font-bold text-neutral-600">
+                            Auto Start Breaks
+                        </span>
+                        <ToggleSwitch
+                            id="auto-start-breaks"
+                            checked={settings.autoStartBreaks}
+                            onChange={(checked) =>
+                                updateSettings({ autoStartBreaks: checked })
+                            }
+                        />
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm font-bold text-neutral-600">
+                            Auto Start Pomodoros
+                        </span>
+                        <ToggleSwitch
+                            id="auto-start-pomodoros"
+                            checked={settings.autoStartPomodoros}
+                            onChange={(checked) => {
+                                updateSettings({ autoStartPomodoros: checked });
+                            }}
+                        />
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm font-bold text-neutral-600">
+                            Long Break interval
+                        </span>
+                        <input
+                            type="number"
+                            id="long-break-interval"
+                            value={settings.longBreakInterval}
+                            onChange={(e) =>
+                                updateSettings({
+                                    longBreakInterval: Number(e.target.value),
+                                })
+                            }
+                            className="w-16 bg-[#efefef] text-neutral-600 font-semibold py-2 px-3 rounded-lg focus:outline-none focus:bg-neutral-200/60 transition-colors text-sm text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                    </div>
+                </div>
+
+                {/* Separator line at the bottom */}
+                <div className="border-t border-neutral-100/70 pt-2" />
+            </div>
+        </form>
+    );
+};
+
+export default Settings;

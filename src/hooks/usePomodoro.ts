@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSettings } from "../context/SettingsContext";
 
 export type Mode = "work" | "short-break" | "long-break";
-
-const WORK_TIME = 25 * 60;
-const SHORT_BREAK_TIME = 5 * 60;
-const LONG_BREAK_TIME = 15 * 60;
 
 export const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -13,57 +10,92 @@ export const formatTime = (seconds: number) => {
 };
 
 export function usePomodoro() {
+    const { settings } = useSettings();
     const [currentMode, setCurrentMode] = useState<Mode>("work");
-    const [remainingTime, setRemainingTime] = useState(WORK_TIME);
     const [isTimeRunning, setIsTimeRunning] = useState(false);
     const [completedWorkSessions, setCompletedWorkSessions] = useState(0);
 
-    const getModeTime = (mode: Mode) => {
-        if (mode === "work") {
-            return WORK_TIME;
-        } else if (mode === "short-break") {
-            return SHORT_BREAK_TIME;
-        } else {
-            return LONG_BREAK_TIME;
-        }
-    };
-
-    const getNextMode = (mode: Mode) => {
-        if (mode === "work") {
-            const nextCount = completedWorkSessions + 1;
-            if (nextCount === 4) {
-                setCompletedWorkSessions(0);
-                return "long-break";
+    const getModeTime = useCallback(
+        (mode: Mode) => {
+            if (mode === "work") {
+                return settings.workTime * 60;
+            } else if (mode === "short-break") {
+                return settings.shortBreak * 60;
+            } else {
+                return settings.longBreak * 60;
             }
-            setCompletedWorkSessions(nextCount);
-            return "short-break";
-        } else {
-            return "work";
+        },
+        [settings.workTime, settings.shortBreak, settings.longBreak],
+    );
+
+    const [remainingTime, setRemainingTime] = useState(() =>
+        getModeTime("work"),
+    );
+
+    useEffect(() => {
+        if (!isTimeRunning) {
+            setRemainingTime(getModeTime(currentMode));
         }
-    };
+    }, [getModeTime, currentMode, isTimeRunning]);
 
     useEffect(() => {
         let intervalId: number | undefined;
 
         if (isTimeRunning) {
             intervalId = window.setInterval(() => {
-                setRemainingTime((prevTime) => {
-                    if (prevTime <= 1) {
-                        setIsTimeRunning(false);
-                        const nextMode = getNextMode(currentMode);
-                        setCurrentMode(nextMode);
-                        return getModeTime(nextMode);
-                    }
-                    return prevTime - 1;
+                setRemainingTime((prev) => {
+                    if (prev <= 0) return 0;
+                    return prev - 1;
                 });
             }, 1000);
         }
+
         return () => {
             if (intervalId) {
                 clearInterval(intervalId);
             }
         };
-    }, [isTimeRunning, currentMode]);
+    }, [isTimeRunning]);
+
+    useEffect(() => {
+        if (remainingTime <= 0) {
+            setIsTimeRunning(false);
+
+            let nextMode: Mode = "work";
+            if (currentMode === "work") {
+                const nextCount = completedWorkSessions + 1;
+                if (nextCount >= settings.longBreakInterval) {
+                    setCompletedWorkSessions(0);
+                    nextMode = "long-break";
+                } else {
+                    setCompletedWorkSessions(nextCount);
+                    nextMode = "short-break";
+                }
+            } else {
+                nextMode = "work";
+            }
+
+            setCurrentMode(nextMode);
+            setRemainingTime(getModeTime(nextMode));
+
+            const shouldAutoStart =
+                nextMode === "work"
+                    ? settings.autoStartPomodoros
+                    : settings.autoStartBreaks;
+
+            if (shouldAutoStart) {
+                setIsTimeRunning(true);
+            }
+        }
+    }, [
+        remainingTime,
+        currentMode,
+        completedWorkSessions,
+        settings.longBreakInterval,
+        settings.autoStartBreaks,
+        settings.autoStartPomodoros,
+        getModeTime,
+    ]);
 
     const toggleTimer = () => setIsTimeRunning((prev) => !prev);
 
