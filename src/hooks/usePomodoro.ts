@@ -36,7 +36,8 @@ export function usePomodoro() {
         if (!isTimeRunning) {
             setRemainingTime(getModeTime(currentMode));
         }
-    }, [getModeTime, currentMode, isTimeRunning]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [getModeTime, currentMode]);
 
     useEffect(() => {
         let intervalId: number | undefined;
