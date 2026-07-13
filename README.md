@@ -21,6 +21,7 @@ Deployed on Vercel --- https://pomodoro-timer-ks.vercel.app/
 
 ## Project Structure
 
+```text
 src/
 ├── components/
 ├── context/
@@ -29,6 +30,7 @@ src/
 ├── App.tsx
 ├── index.css
 └── main.tsx
+```
 
 ## Run Locally
 
